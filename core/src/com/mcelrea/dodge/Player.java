@@ -47,4 +47,8 @@ public class Player {
                 hitBox.getWidth(),
                 hitBox.getHeight());
     }
+
+    public Rectangle getHitBox() {
+        return hitBox;
+    }
 }

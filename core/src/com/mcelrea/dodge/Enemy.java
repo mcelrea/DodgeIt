@@ -48,4 +48,8 @@ public class Enemy {
     public float getySpeed() {
         return ySpeed;
     }
+
+    public Circle getHitCircle() {
+        return hitCircle;
+    }
 }

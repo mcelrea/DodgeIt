@@ -4,15 +4,15 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
+import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.utils.Array;
+import com.badlogic.gdx.utils.XmlReader;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
-/**
- * Created by mcelrea on 3/16/2017.
- */
 public class GameplayScreen implements Screen {
     private static final int WORLD_WIDTH = 800;
     private static final int WORLD_HEIGHT = 600;
@@ -22,6 +22,10 @@ public class GameplayScreen implements Screen {
     private Viewport viewport; //lock resolution
     private Player player1;
     Array<Enemy> enemies;
+    private int numOfSimpleEnemies = 10;
+    private long startTime;
+    BitmapFont font;
+    boolean blockSpawningTimer = false;
 
     public GameplayScreen(MyGdxGame myGdxGame) {
 
@@ -40,6 +44,8 @@ public class GameplayScreen implements Screen {
         player1 = new Player(200,200);
         enemies = new Array<Enemy>();
         addInitialEnemies();
+        startTime = System.currentTimeMillis(); //grab current time from computer
+        font = new BitmapFont();
     }
 
     private void addInitialEnemies() {
@@ -50,21 +56,26 @@ public class GameplayScreen implements Screen {
 
     public Enemy createSimpleEnemy() {
         int side = (int) (1 + Math.random() * 4);
+        int speed = (int) (150 + Math.random() * 150);
         if(side == 1) {
             int randX = (int) (Math.random() * WORLD_WIDTH);
-            return new Enemy(randX,WORLD_HEIGHT+100,0,-150);
+            int randY = (int) (WORLD_HEIGHT+100+Math.random()*500);
+            return new Enemy(randX,randY,0,-speed);
         }
         else if(side == 2) {
+            int randX = (int) (WORLD_WIDTH+100+Math.random()*500);
             int randY = (int) (Math.random() * WORLD_HEIGHT);
-            return new Enemy(WORLD_WIDTH+100,randY,-150,0);
+            return new Enemy(randX,randY,-speed,0);
         }
         else if(side == 3) {
             int randX = (int) (Math.random() * WORLD_WIDTH);
-            return new Enemy(randX,-100,0,150);
+            int randY = (int) (-600+Math.random()*500);
+            return new Enemy(randX,randY,0,speed);
         }
         else {
+            int randX = (int) (-600+Math.random()*500);
             int randY = (int) (Math.random() * WORLD_HEIGHT);
-            return new Enemy(-100,randY,150,0);
+            return new Enemy(randX,randY,speed,0);
         }
     }
 
@@ -93,10 +104,14 @@ public class GameplayScreen implements Screen {
     @Override
     public void render(float delta) {
         clearScreen();
-        for(int i=0; i < enemies.size; i++) {
-            enemies.get(i).act(delta);
-        }
+        updateEnemies(delta);
         player1.update();
+        checkForCollisions();
+
+        //draw graphics and fonts
+        batch.begin();
+        font.draw(batch,"Time: " + ((System.currentTimeMillis()-startTime)/1000),380,570);
+        batch.end();
 
         //draw shapes
         shapeRenderer.begin();
@@ -105,6 +120,37 @@ public class GameplayScreen implements Screen {
             enemies.get(i).drawDebug(shapeRenderer);
         }
         shapeRenderer.end();
+    }
+
+    private void checkForCollisions() {
+        //loop thru every enemy
+        for(int i=0; i < enemies.size; i++) {
+            Enemy currentEnemy = enemies.get(i);
+            if(Intersector.overlaps(currentEnemy.getHitCircle(),player1.getHitBox())) {
+                System.exit(0);
+            }
+        }
+    }
+
+    private void updateEnemies(float delta) {
+        for(int i=0; i < enemies.size; i++) {
+            enemies.get(i).act(delta);
+            if(shouldIKill(enemies.get(i))) {
+                Enemy removed = enemies.removeIndex(i);
+                i--;
+                if(removed instanceof Enemy)
+                    enemies.add(createSimpleEnemy());
+            }
+        }
+
+        long currentTime = (System.currentTimeMillis()-startTime)/1000;
+        if(currentTime % 100 == 0 && !blockSpawningTimer) {
+            enemies.add(createSimpleEnemy());
+            blockSpawningTimer = true;
+        }
+        else {
+            blockSpawningTimer = false;
+        }
     }
 
     public void clearScreen() {
