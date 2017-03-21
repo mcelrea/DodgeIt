@@ -6,6 +6,7 @@ import com.badlogic.gdx.graphics.GL20;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
@@ -20,7 +21,7 @@ public class GameplayScreen implements Screen {
     private OrthographicCamera camera; //2D camera
     private Viewport viewport; //lock resolution
     private Player player1;
-    Enemy enemy;
+    Array<Enemy> enemies;
 
     public GameplayScreen(MyGdxGame myGdxGame) {
 
@@ -37,7 +38,54 @@ public class GameplayScreen implements Screen {
         camera.position.set(WORLD_WIDTH/2,WORLD_HEIGHT/2,0);
         viewport = new FitViewport(WORLD_WIDTH,WORLD_HEIGHT,camera);
         player1 = new Player(200,200);
-        enemy = new Enemy(200,200,5,0);
+        enemies = new Array<Enemy>();
+        addInitialEnemies();
+    }
+
+    private void addInitialEnemies() {
+        for(int i=0; i < 10; i++) {
+            enemies.add(createSimpleEnemy());
+        }
+    }
+
+    public Enemy createSimpleEnemy() {
+        int side = (int) (1 + Math.random() * 4);
+        if(side == 1) {
+            int randX = (int) (Math.random() * WORLD_WIDTH);
+            return new Enemy(randX,WORLD_HEIGHT+100,0,-150);
+        }
+        else if(side == 2) {
+            int randY = (int) (Math.random() * WORLD_HEIGHT);
+            return new Enemy(WORLD_WIDTH+100,randY,-150,0);
+        }
+        else if(side == 3) {
+            int randX = (int) (Math.random() * WORLD_WIDTH);
+            return new Enemy(randX,-100,0,150);
+        }
+        else {
+            int randY = (int) (Math.random() * WORLD_HEIGHT);
+            return new Enemy(-100,randY,150,0);
+        }
+    }
+
+    public boolean shouldIKill(Enemy e) {
+        //moving off the left of the screen
+        if(e.getX() < 0 && e.getxSpeed() < 0) {
+            return true;
+        }
+        //moving off the right of the screen
+        else if(e.getX() > WORLD_WIDTH && e.getxSpeed() > 0) {
+            return true;
+        }
+        //moving off the top of the screen
+        else if(e.getY() > WORLD_HEIGHT && e.getySpeed() > 0) {
+            return true;
+        }
+        //moving off the bottom of the screen
+        else if(e.getY() < 0 && e.getySpeed() < 0) {
+            return true;
+        }
+        return false;
     }
 
     //render continually runs
@@ -45,12 +93,17 @@ public class GameplayScreen implements Screen {
     @Override
     public void render(float delta) {
         clearScreen();
+        for(int i=0; i < enemies.size; i++) {
+            enemies.get(i).act(delta);
+        }
         player1.update();
 
         //draw shapes
         shapeRenderer.begin();
         player1.drawDebug(shapeRenderer);
-        enemy.drawDebug(shapeRenderer);
+        for(int i=0; i < enemies.size; i++) {
+            enemies.get(i).drawDebug(shapeRenderer);
+        }
         shapeRenderer.end();
     }
 

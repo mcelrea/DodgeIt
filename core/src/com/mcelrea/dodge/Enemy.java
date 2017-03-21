@@ -19,7 +19,33 @@ public class Enemy {
         hitCircle = new Circle(x,y,RADIUS);
     }
 
+    public void act(float delta) {
+        x += xSpeed * delta;
+        y += ySpeed * delta;
+        updateHitCircle();
+    }
+
+    public void updateHitCircle() {
+        hitCircle.setPosition(x,y);
+    }
+
     public void drawDebug(ShapeRenderer shapeRenderer) {
         shapeRenderer.circle(hitCircle.x,hitCircle.y,hitCircle.radius);
+    }
+
+    public float getX() {
+        return x;
+    }
+
+    public float getY() {
+        return y;
+    }
+
+    public float getxSpeed() {
+        return xSpeed;
+    }
+
+    public float getySpeed() {
+        return ySpeed;
     }
 }
