@@ -9,7 +9,6 @@ import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.utils.Array;
-import com.badlogic.gdx.utils.XmlReader;
 import com.badlogic.gdx.utils.viewport.FitViewport;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
@@ -25,10 +24,12 @@ public class GameplayScreen implements Screen {
     private int numOfSimpleEnemies = 10;
     private long startTime;
     BitmapFont font;
-    boolean blockSpawningTimer = false;
+    boolean blockSpawningTimer = true;
+    String debugOutput = "";
+    MyGdxGame game;
 
     public GameplayScreen(MyGdxGame myGdxGame) {
-
+        this.game = myGdxGame;
     }
 
     //runs anytime this screen is shown
@@ -79,6 +80,31 @@ public class GameplayScreen implements Screen {
         }
     }
 
+    public Enemy createGrowEnemy() {
+        int side = (int) (1 + Math.random() * 4);
+        int speed = (int) (150 + Math.random() * 150);
+        if(side == 1) {
+            int randX = (int) (Math.random() * WORLD_WIDTH);
+            int randY = (int) (WORLD_HEIGHT+100+Math.random()*500);
+            return new GrowEnemy(randX,randY,0,-speed);
+        }
+        else if(side == 2) {
+            int randX = (int) (WORLD_WIDTH+100+Math.random()*500);
+            int randY = (int) (Math.random() * WORLD_HEIGHT);
+            return new GrowEnemy(randX,randY,-speed,0);
+        }
+        else if(side == 3) {
+            int randX = (int) (Math.random() * WORLD_WIDTH);
+            int randY = (int) (-600+Math.random()*500);
+            return new GrowEnemy(randX,randY,0,speed);
+        }
+        else {
+            int randX = (int) (-600+Math.random()*500);
+            int randY = (int) (Math.random() * WORLD_HEIGHT);
+            return new GrowEnemy(randX,randY,speed,0);
+        }
+    }
+
     public boolean shouldIKill(Enemy e) {
         //moving off the left of the screen
         if(e.getX() < 0 && e.getxSpeed() < 0) {
@@ -111,6 +137,7 @@ public class GameplayScreen implements Screen {
         //draw graphics and fonts
         batch.begin();
         font.draw(batch,"Time: " + ((System.currentTimeMillis()-startTime)/1000),380,570);
+        font.draw(batch,debugOutput,10,500);
         batch.end();
 
         //draw shapes
@@ -127,7 +154,7 @@ public class GameplayScreen implements Screen {
         for(int i=0; i < enemies.size; i++) {
             Enemy currentEnemy = enemies.get(i);
             if(Intersector.overlaps(currentEnemy.getHitCircle(),player1.getHitBox())) {
-                System.exit(0);
+                game.setScreen(new EndScreen(game,(int)((System.currentTimeMillis()-startTime)/1000)));
             }
         }
     }
@@ -138,15 +165,23 @@ public class GameplayScreen implements Screen {
             if(shouldIKill(enemies.get(i))) {
                 Enemy removed = enemies.removeIndex(i);
                 i--;
-                if(removed instanceof Enemy)
+                if(removed instanceof GrowEnemy)
+                    enemies.add(createGrowEnemy());
+                else
                     enemies.add(createSimpleEnemy());
             }
         }
 
         long currentTime = (System.currentTimeMillis()-startTime)/1000;
-        if(currentTime % 100 == 0 && !blockSpawningTimer) {
-            enemies.add(createSimpleEnemy());
-            blockSpawningTimer = true;
+        debugOutput = "";
+        debugOutput += "current Time: " + currentTime;
+        debugOutput += "  mod: " + (currentTime % 3 == 0);
+        debugOutput += "  blocked: " + blockSpawningTimer;
+        if(currentTime % 3 == 0) {
+            if(!blockSpawningTimer) {
+                enemies.add(createGrowEnemy());
+                blockSpawningTimer = true;
+            }
         }
         else {
             blockSpawningTimer = false;

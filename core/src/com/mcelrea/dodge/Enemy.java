@@ -4,7 +4,7 @@ import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
 import com.badlogic.gdx.math.Circle;
 
 public class Enemy {
-    protected static final int RADIUS = 15;
+    protected float RADIUS = 15;
     protected Circle hitCircle;
     protected float x;
     protected float y;
