@@ -10,6 +10,7 @@ public class Enemy {
     protected float y;
     protected float xSpeed;
     protected float ySpeed;
+    protected float red, green, blue;
 
     public Enemy(float x, float y, float xSpeed, float ySpeed) {
         this.x = x;
@@ -17,6 +18,9 @@ public class Enemy {
         this.xSpeed = xSpeed;
         this.ySpeed = ySpeed;
         hitCircle = new Circle(x,y,RADIUS);
+        red = (float) Math.random();
+        green = (float) Math.random();
+        blue = (float) Math.random();
     }
 
     public void act(float delta) {
@@ -30,6 +34,13 @@ public class Enemy {
     }
 
     public void drawDebug(ShapeRenderer shapeRenderer) {
+        shapeRenderer.set(ShapeRenderer.ShapeType.Line);
+        shapeRenderer.circle(hitCircle.x,hitCircle.y,hitCircle.radius);
+    }
+
+    public void draw(ShapeRenderer shapeRenderer) {
+        shapeRenderer.set(ShapeRenderer.ShapeType.Filled);
+        shapeRenderer.setColor(red, green,blue, 1);
         shapeRenderer.circle(hitCircle.x,hitCircle.y,hitCircle.radius);
     }
 

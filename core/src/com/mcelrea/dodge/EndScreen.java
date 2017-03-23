@@ -40,7 +40,9 @@ public class EndScreen implements Screen {
 
         batch.begin();
         font.draw(batch, "Game Over", 300,400);
-        batch.end();    }
+        font.draw(batch, "Final Score: " + score, 300,380);
+        batch.end();
+    }
 
     @Override
     public void resize(int width, int height) {

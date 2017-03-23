@@ -131,20 +131,24 @@ public class GameplayScreen implements Screen {
     public void render(float delta) {
         clearScreen();
         updateEnemies(delta);
-        player1.update();
+        player1.update(delta);
         checkForCollisions();
 
         //draw graphics and fonts
         batch.begin();
         font.draw(batch,"Time: " + ((System.currentTimeMillis()-startTime)/1000),380,570);
         font.draw(batch,debugOutput,10,500);
+        player1.draw(batch);
         batch.end();
 
         //draw shapes
         shapeRenderer.begin();
-        player1.drawDebug(shapeRenderer);
+        //player1.drawDebug(shapeRenderer);
+        //for(int i=0; i < enemies.size; i++) {
+        //    enemies.get(i).drawDebug(shapeRenderer);
+        //}
         for(int i=0; i < enemies.size; i++) {
-            enemies.get(i).drawDebug(shapeRenderer);
+            enemies.get(i).draw(shapeRenderer);
         }
         shapeRenderer.end();
     }
